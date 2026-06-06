@@ -6,7 +6,8 @@ Python demo for a multi-agent application built with Google ADK, FastAPI, Stream
 
 `demo-multi-agent-adk` separates a Streamlit frontend from a FastAPI backend. The backend exposes a chat endpoint, runs a Google ADK root agent through an ADK `Runner`, and delegates work to specialist subagents for retrieval-style answers and financial education. Shared runtime settings live in `config.yaml` and are validated with Pydantic before use.
 
-https://github.com/abakamousa/demo-multi-agent-adk/blob/main/images/architecture.png
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/bf9c6b0c-fcc4-4495-add8-e1258a3d2abd" />
+
 
 ## Project Structure
 
