@@ -9,7 +9,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
 
-from langfuse import get_client, propagate_attributes
+from langfuse import Langfuse, propagate_attributes
 
 from utils.config import load_settings
 
@@ -30,6 +30,7 @@ class LangfuseMonitor:
 
         settings = load_settings()
         self._client: Any | None = None
+        self.langfuse_config = settings.langfuse
         self.trace_name = trace_name or settings.langfuse.backend_trace_name
         self.metadata = self._metadata(
             {
@@ -83,7 +84,19 @@ class LangfuseMonitor:
         """Return the Langfuse client, creating it on first tracing use."""
 
         if self._client is None:
-            self._client = get_client()
+            self._client = Langfuse(
+                public_key=(
+                    self.langfuse_config.public_key.get_secret_value()
+                    if self.langfuse_config.public_key
+                    else None
+                ),
+                secret_key=(
+                    self.langfuse_config.secret_key.get_secret_value()
+                    if self.langfuse_config.secret_key
+                    else None
+                ),
+                base_url=str(self.langfuse_config.base_url),
+            )
         return self._client
 
     def _metadata(self, values: dict[str, Any]) -> dict[str, str]:

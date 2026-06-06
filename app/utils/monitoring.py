@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from langfuse import get_client
+from langfuse import Langfuse
 
 from utils.config import load_settings
 
@@ -21,6 +21,7 @@ class LangfuseMonitor:
 
         settings = load_settings()
         self._client: Any | None = None
+        self.langfuse_config = settings.langfuse
         self.trace_name = trace_name or settings.langfuse.frontend_trace_name
         self.metadata = {"service": "frontend", **(metadata or {})}
         self.tags = [*settings.langfuse.tags, "frontend", *(tags or [])]
@@ -40,5 +41,17 @@ class LangfuseMonitor:
         """Return the Langfuse client, creating it on first tracing use."""
 
         if self._client is None:
-            self._client = get_client()
+            self._client = Langfuse(
+                public_key=(
+                    self.langfuse_config.public_key.get_secret_value()
+                    if self.langfuse_config.public_key
+                    else None
+                ),
+                secret_key=(
+                    self.langfuse_config.secret_key.get_secret_value()
+                    if self.langfuse_config.secret_key
+                    else None
+                ),
+                base_url=str(self.langfuse_config.base_url),
+            )
         return self._client

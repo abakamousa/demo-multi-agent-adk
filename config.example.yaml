@@ -1,0 +1,66 @@
+default_environment: "dev"
+
+environments:
+  dev:
+    app:
+      title: "Multi-Agent ADK Demo"
+      page_icon: ":robot_face:"
+      layout: "centered"
+      backend_url: "http://localhost:8000"
+      prompt_label: "Ask AI Agent assistant"
+
+    backend:
+      title: "Multi-Agent ADK Backend"
+      description: "FastAPI backend for the multi-agent system, exposing GCP Vertex AI integration."
+      version: "0.1.0"
+
+    adk:
+      app_name: "demo_multi_agent_adk"
+      default_user_id: "anonymous"
+      model_name: "gemini-flash-latest"
+
+    vertex_ai:
+      project: null
+      region: "us-central1"
+
+    langfuse:
+      public_key: null
+      secret_key: null
+      base_url: "https://cloud.langfuse.com"
+      backend_trace_name: "demo_multi_agent_adk.backend.dev"
+      frontend_trace_name: "demo_multi_agent_adk.frontend.dev"
+      tags:
+        - "google-adk"
+        - "dev"
+
+  prod:
+    app:
+      title: "Multi-Agent ADK Demo"
+      page_icon: ":robot_face:"
+      layout: "centered"
+      backend_url: "https://api.example.com"
+      prompt_label: "Ask AI AgentÒ assistant"
+
+    backend:
+      title: "Multi-Agent ADK Backend"
+      description: "FastAPI backend for the multi-agent system, exposing GCP Vertex AI integration."
+      version: "0.1.0"
+
+    adk:
+      app_name: "demo_multi_agent_adk"
+      default_user_id: "anonymous"
+      model_name: "gemini-flash-latest"
+
+    vertex_ai:
+      project: "your-gcp-project-id"
+      region: "us-central1"
+
+    langfuse:
+      public_key: null
+      secret_key: null
+      base_url: "https://cloud.langfuse.com"
+      backend_trace_name: "demo_multi_agent_adk.backend.prod"
+      frontend_trace_name: "demo_multi_agent_adk.frontend.prod"
+      tags:
+        - "google-adk"
+        - "prod"

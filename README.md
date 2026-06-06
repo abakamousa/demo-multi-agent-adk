@@ -4,7 +4,7 @@ Python demo for a multi-agent application built with Google ADK, FastAPI, Stream
 
 ## Overview
 
-`demo-multi-agent-adk` separates a Streamlit frontend from a FastAPI backend. The backend exposes a chat endpoint, runs a Google ADK root agent through an ADK `Runner`, and delegates work to specialist subagents for retrieval-style answers and financial education. Shared runtime settings live in `config.yaml` and are validated with Pydantic before use.
+`demo-multi-agent-adk` separates a Streamlit frontend from a FastAPI backend. The backend exposes a chat endpoint, runs a Google ADK root agent through an ADK `Runner`, and delegates work to specialist subagents for retrieval-style answers and financial education. Shared runtime settings live in a local `config.yaml` and are validated with Pydantic before use. Commit only `config.example.yaml`; keep real credentials in the ignored local config file or environment variables.
 
 <img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/bf9c6b0c-fcc4-4495-add8-e1258a3d2abd" />
 
@@ -43,7 +43,7 @@ tests/
   test_config.py
   test_service.py
 
-config.yaml
+config.example.yaml
 pyproject.toml
 ```
 
@@ -70,44 +70,57 @@ uv sync --extra dev
 
 ## Configuration
 
-Application configuration is centralized in [config.yaml](config.yaml):
+Application configuration is defined by environment in [config.example.yaml](config.example.yaml). Copy it locally before running the app:
 
-```yaml
-app:
-  title: "Multi-Agent ADK Demo"
-  backend_url: "http://localhost:8000"
-
-adk:
-  app_name: "demo_multi_agent_adk"
-  default_user_id: "anonymous"
-  model_name: "gemini-flash-latest"
-
-vertex_ai:
-  project: null
-  region: "us-central1"
-
-langfuse:
-  backend_trace_name: "demo_multi_agent_adk.backend"
-  frontend_trace_name: "demo_multi_agent_adk.frontend"
-  tags:
-    - "google-adk"
+```bash
+cp config.example.yaml config.yaml
 ```
 
-The config is loaded and validated by [utils/config.py](utils/config.py). Unknown keys, invalid frontend layouts, malformed URLs, and missing required values fail validation early.
+`config.yaml` is ignored by Git so it can contain local URLs and credentials without being pushed.
 
-Update `config.yaml` for local environment values such as:
+```yaml
+default_environment: "dev"
+
+environments:
+  dev:
+    app:
+      backend_url: "http://localhost:8000"
+    langfuse:
+      public_key: null
+      secret_key: null
+      base_url: "https://cloud.langfuse.com"
+```
+
+The config is loaded and validated by [utils/config.py](utils/config.py). Unknown keys, invalid frontend layouts, malformed URLs, unknown environments, and missing required values fail validation early.
+
+Choose the active environment with `APP_ENV`:
+
+```bash
+export APP_ENV=dev
+```
+
+For production:
+
+```bash
+export APP_ENV=prod
+```
+
+Update the ignored local `config.yaml` for environment-specific values such as:
 
 - `app.backend_url`
 - `adk.model_name`
 - `vertex_ai.project`
 - `vertex_ai.region`
 - Langfuse trace names and tags
+- `langfuse.public_key`
+- `langfuse.secret_key`
+- `langfuse.base_url`
 
 ## Langfuse Tracing
 
 The backend traces Google ADK runs with the Langfuse Python SDK. Each `/api/chat` request creates an `agent` observation around the ADK runner, propagates `user_id`, `session_id`, tags, and metadata, and records the prompt plus final answer.
 
-Configure Langfuse with environment variables:
+Configure Langfuse with environment variables or the ignored local `config.yaml`.
 
 ```bash
 export LANGFUSE_PUBLIC_KEY="pk-lf-..."
@@ -126,14 +139,20 @@ Tracing helpers live in:
 - [backend/utils/monitoring.py](backend/utils/monitoring.py)
 - [app/utils/monitoring.py](app/utils/monitoring.py)
 
-Trace names and tags are configured in `config.yaml`:
+Trace names, tags, and optional Langfuse keys are configured per environment:
 
 ```yaml
-langfuse:
-  backend_trace_name: "demo_multi_agent_adk.backend"
-  frontend_trace_name: "demo_multi_agent_adk.frontend"
-  tags:
-    - "google-adk"
+environments:
+  dev:
+    langfuse:
+      public_key: null
+      secret_key: null
+      base_url: "https://cloud.langfuse.com"
+      backend_trace_name: "demo_multi_agent_adk.backend.dev"
+      frontend_trace_name: "demo_multi_agent_adk.frontend.dev"
+      tags:
+        - "google-adk"
+        - "dev"
 ```
 
 The backend service instrumentation is in [backend/service/vertex_llm.py](backend/service/vertex_llm.py). It follows Langfuse best practices for agent workflows by using a descriptive trace name, explicit input/output, propagated session/user attributes, and error status updates.
@@ -168,7 +187,7 @@ Start the Streamlit app:
 uv run streamlit run app/main.py
 ```
 
-The frontend reads display settings and backend URL from `config.yaml`.
+The frontend reads display settings and backend URL from the selected config environment.
 
 ## Agents
 
@@ -202,7 +221,8 @@ uv run --extra dev ruff check .
 
 ## Notes
 
-- `config.yaml` is the source of truth for runtime configuration.
-- Keep secrets out of `config.yaml`; use environment variables or deployment secret management.
+- `config.example.yaml` is the committed template.
+- `config.yaml` is ignored and may contain local credentials.
+- Prefer environment variables or deployment secret management for production secrets.
 - The frontend service is still a lightweight local client layer. The backend is the ADK execution path.
 - See [images/architecture.png](images/architecture.png) for the architecture diagram.
