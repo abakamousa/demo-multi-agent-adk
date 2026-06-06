@@ -53,8 +53,8 @@ class VertexAIConfig(BaseModel):
     region: str = Field(min_length=1)
 
 
-class LangSmithConfig(BaseModel):
-    """Configuration for LangSmith Google ADK tracing."""
+class LangfuseConfig(BaseModel):
+    """Configuration for Langfuse tracing."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -72,7 +72,7 @@ class Settings(BaseModel):
     backend: BackendConfig
     adk: ADKConfig
     vertex_ai: VertexAIConfig
-    langsmith: LangSmithConfig
+    langfuse: LangfuseConfig
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:

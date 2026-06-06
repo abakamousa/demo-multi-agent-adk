@@ -3,13 +3,13 @@
 import streamlit as st
 
 from app.service.vertex_llm import VertexLLMClient
-from app.utils.monitoring import LangsmithMonitor
+from app.utils.monitoring import LangfuseMonitor
 from app.utils.pydantic import UserQuery
 from utils.config import load_settings
 
 settings = load_settings()
 
-monitor = LangsmithMonitor()
+monitor = LangfuseMonitor()
 llm_client = VertexLLMClient(
     project=settings.vertex_ai.project,
     region=settings.vertex_ai.region,

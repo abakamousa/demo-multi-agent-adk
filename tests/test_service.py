@@ -1,6 +1,7 @@
 """Unit tests for service modules."""
 
 from collections.abc import AsyncIterator
+from contextlib import contextmanager
 from types import SimpleNamespace
 
 import pytest
@@ -35,7 +36,17 @@ class FakeSessionService:
         return SimpleNamespace(**kwargs)
 
 
+class FakeMonitor:
+    @contextmanager
+    def trace_agent_run(self, **kwargs: object) -> object:
+        yield SimpleNamespace(update=lambda **update_kwargs: None)
+
+
 class FakeVertexLLMService(VertexLLMService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.monitor = FakeMonitor()
+
     def _get_runner(self) -> FakeRunner:
         self._session_service = FakeSessionService()
         return FakeRunner()

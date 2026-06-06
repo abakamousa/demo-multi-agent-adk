@@ -1,6 +1,6 @@
 # Demo-multi-agent-adk
 
-Python demo for a multi-agent application built with Google ADK, FastAPI, Streamlit, Vertex AI/Gemini, and LangSmith tracing.
+Python demo for a multi-agent application built with Google ADK, FastAPI, Streamlit, Vertex AI/Gemini, and Langfuse tracing.
 
 ## Overview
 
@@ -51,7 +51,7 @@ pyproject.toml
 
 - Python 3.11+
 - `uv`
-- Google ADK and LangSmith dependencies from `pyproject.toml`
+- Google ADK and Langfuse dependencies from `pyproject.toml`
 - Google Cloud credentials for live Vertex AI/Gemini calls
 
 ## Setup
@@ -85,6 +85,12 @@ adk:
 vertex_ai:
   project: null
   region: "us-central1"
+
+langfuse:
+  backend_trace_name: "demo_multi_agent_adk.backend"
+  frontend_trace_name: "demo_multi_agent_adk.frontend"
+  tags:
+    - "google-adk"
 ```
 
 The config is loaded and validated by [utils/config.py](utils/config.py). Unknown keys, invalid frontend layouts, malformed URLs, and missing required values fail validation early.
@@ -95,24 +101,42 @@ Update `config.yaml` for local environment values such as:
 - `adk.model_name`
 - `vertex_ai.project`
 - `vertex_ai.region`
-- LangSmith trace names and tags
+- Langfuse trace names and tags
 
-## LangSmith Tracing
+## Langfuse Tracing
 
-The app uses the official LangSmith Google ADK integration via `configure_google_adk()`. Configure tracing with environment variables:
+The backend traces Google ADK runs with the Langfuse Python SDK. Each `/api/chat` request creates an `agent` observation around the ADK runner, propagates `user_id`, `session_id`, tags, and metadata, and records the prompt plus final answer.
+
+Configure Langfuse with environment variables:
 
 ```bash
-export LANGSMITH_TRACING=true
-export LANGSMITH_API_KEY="your-langsmith-api-key"
-export LANGSMITH_PROJECT="demo-multi-agent-adk"
+export LANGFUSE_PUBLIC_KEY="pk-lf-..."
+export LANGFUSE_SECRET_KEY="sk-lf-..."
+export LANGFUSE_BASE_URL="https://cloud.langfuse.com"
 ```
 
-Tracing is configured in:
+For US cloud, use:
+
+```bash
+export LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"
+```
+
+Tracing helpers live in:
 
 - [backend/utils/monitoring.py](backend/utils/monitoring.py)
 - [app/utils/monitoring.py](app/utils/monitoring.py)
 
-ADK agent runs, LLM calls, and tool calls are traced automatically after configuration.
+Trace names and tags are configured in `config.yaml`:
+
+```yaml
+langfuse:
+  backend_trace_name: "demo_multi_agent_adk.backend"
+  frontend_trace_name: "demo_multi_agent_adk.frontend"
+  tags:
+    - "google-adk"
+```
+
+The backend service instrumentation is in [backend/service/vertex_llm.py](backend/service/vertex_llm.py). It follows Langfuse best practices for agent workflows by using a descriptive trace name, explicit input/output, propagated session/user attributes, and error status updates.
 
 ## Running The Backend
 

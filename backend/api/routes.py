@@ -3,11 +3,11 @@
 from fastapi import APIRouter, HTTPException
 from backend.service.vertex_llm import VertexLLMService
 from backend.utils.pydantic import QueryRequest, QueryResponse
-from backend.utils.monitoring import LangsmithMonitor
+from backend.utils.monitoring import LangfuseMonitor
 
 router = APIRouter()
 service = VertexLLMService()
-monitor = LangsmithMonitor()
+monitor = LangfuseMonitor()
 
 
 @router.post("/chat", response_model=QueryResponse)

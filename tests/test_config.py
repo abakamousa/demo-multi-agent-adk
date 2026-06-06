@@ -39,7 +39,7 @@ adk:
 vertex_ai:
   project: null
   region: us-central1
-langsmith:
+langfuse:
   backend_trace_name: demo.backend
   frontend_trace_name: demo.frontend
   tags:

@@ -1,55 +1,44 @@
-"""LangSmith tracing setup for frontend-side Google ADK usage.
-
-The frontend currently calls the backend service, but this wrapper uses the same
-official LangSmith Google ADK integration so any future local ADK agent runs are
-traced consistently. Configure LangSmith with ``LANGSMITH_TRACING``,
-``LANGSMITH_API_KEY``, and ``LANGSMITH_PROJECT`` in the environment.
-"""
+"""Langfuse tracing helpers for frontend-local workflows."""
 
 from typing import Any
 
-from langsmith.integrations.google_adk import configure_google_adk
+from langfuse import get_client
+
 from utils.config import load_settings
 
 
-class LangsmithMonitor:
-    """Configure LangSmith's official Google ADK tracing integration."""
-
-    _configured = False
+class LangfuseMonitor:
+    """Provide a Langfuse client wrapper for frontend instrumentation."""
 
     def __init__(
         self,
         *,
-        project_name: str | None = None,
         trace_name: str | None = None,
         metadata: dict[str, Any] | None = None,
         tags: list[str] | None = None,
     ) -> None:
-        """Configure ADK tracing once for frontend-local agent runs."""
+        """Initialize frontend tracing defaults from validated config."""
 
         settings = load_settings()
-        self.project_name = project_name
-        self.trace_name = trace_name or settings.langsmith.frontend_trace_name
+        self._client: Any | None = None
+        self.trace_name = trace_name or settings.langfuse.frontend_trace_name
         self.metadata = {"service": "frontend", **(metadata or {})}
-        self.tags = [*settings.langsmith.tags, "frontend", *(tags or [])]
-        self.enabled = self._configure()
-
-    def _configure(self) -> bool:
-        """Call LangSmith's ADK tracer configuration exactly once."""
-
-        if self.__class__._configured:
-            return True
-
-        configured = configure_google_adk(
-            name=self.trace_name,
-            project_name=self.project_name,
-            metadata=self.metadata,
-            tags=self.tags,
-        )
-        self.__class__._configured = configured
-        return configured
+        self.tags = [*settings.langfuse.tags, "frontend", *(tags or [])]
 
     def track_event(self, name: str, payload: dict[str, Any] | None = None) -> None:
-        """Retain the app API while ADK tracing captures events automatically."""
+        """Keep the app API stable; backend ADK calls carry detailed traces."""
 
         return None
+
+    def flush(self) -> None:
+        """Flush queued Langfuse events for short-lived frontend scripts."""
+
+        self.client.flush()
+
+    @property
+    def client(self) -> Any:
+        """Return the Langfuse client, creating it on first tracing use."""
+
+        if self._client is None:
+            self._client = get_client()
+        return self._client

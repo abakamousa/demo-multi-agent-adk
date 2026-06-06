@@ -11,6 +11,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from backend.agents.orchestrator import create_root_agent
+from backend.utils.monitoring import LangfuseMonitor
 from utils.config import load_settings
 
 
@@ -29,6 +30,7 @@ class VertexLLMService:
         self.model_name = model_name or settings.adk.model_name
         self.app_name = settings.adk.app_name
         self.default_user_id = settings.adk.default_user_id
+        self.monitor = LangfuseMonitor()
         self._runner: Any | None = None
         self._session_service: Any | None = None
 
@@ -54,21 +56,39 @@ class VertexLLMService:
             state=context or {},
         )
 
-        content = self._new_user_content(prompt)
-        final_answer = ""
-        async for event in self._run_agent(
-            runner=runner,
+        with self.monitor.trace_agent_run(
+            prompt=prompt,
             user_id=resolved_user_id,
             session_id=resolved_session_id,
-            content=content,
-        ):
-            if event.is_final_response() and event.content and event.content.parts:
-                final_answer = "".join(
-                    part.text or "" for part in event.content.parts if part.text
-                ).strip()
+            metadata={"has_context": bool(context)},
+        ) as span:
+            try:
+                content = self._new_user_content(prompt)
+                final_answer = ""
+                async for event in self._run_agent(
+                    runner=runner,
+                    user_id=resolved_user_id,
+                    session_id=resolved_session_id,
+                    content=content,
+                ):
+                    if (
+                        event.is_final_response()
+                        and event.content
+                        and event.content.parts
+                    ):
+                        final_answer = "".join(
+                            part.text or "" for part in event.content.parts if part.text
+                        ).strip()
 
-        if not final_answer:
-            raise RuntimeError("ADK runner completed without a final text response.")
+                if not final_answer:
+                    raise RuntimeError(
+                        "ADK runner completed without a final text response."
+                    )
+
+                span.update(output={"answer": final_answer})
+            except Exception as exc:
+                span.update(level="ERROR", status_message=str(exc))
+                raise
 
         return final_answer
 
