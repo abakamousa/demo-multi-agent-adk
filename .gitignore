@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment and secrets
+.env
+.env.*
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Python testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs and editor folders
+.vscode/
+.idea/
+*.swp
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
+
+# System
+.DS_Store

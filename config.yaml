@@ -1,0 +1,26 @@
+app:
+  title: "Multi-Agent ADK Demo"
+  page_icon: ":robot_face:"
+  layout: "centered"
+  backend_url: "http://localhost:8000"
+  prompt_label: "Ask the financial assistant"
+
+backend:
+  title: "Multi-Agent ADK Backend"
+  description: "FastAPI backend for the multi-agent system, exposing GCP Vertex AI integration."
+  version: "0.1.0"
+
+adk:
+  app_name: "demo_multi_agent_adk"
+  default_user_id: "anonymous"
+  model_name: "gemini-flash-latest"
+
+vertex_ai:
+  project: null
+  region: "us-central1"
+
+langsmith:
+  backend_trace_name: "demo_multi_agent_adk.backend"
+  frontend_trace_name: "demo_multi_agent_adk.frontend"
+  tags:
+    - "google-adk"
