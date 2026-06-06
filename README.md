@@ -1,4 +1,4 @@
-# demo-multi-agent-adk
+# Demo-multi-agent-adk
 
 Python demo for a multi-agent application built with Google ADK, FastAPI, Streamlit, Vertex AI/Gemini, and LangSmith tracing.
 
