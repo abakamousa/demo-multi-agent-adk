@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
+from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, SecretStr, ValidationError
 
 CONFIG_FILE = "config.yaml"
@@ -46,6 +47,8 @@ class ADKConfig(BaseModel):
     app_name: str = Field(min_length=1)
     default_user_id: str = Field(min_length=1)
     model_name: str = Field(min_length=1)
+    retry_attempts: int = Field(default=2, ge=1)
+    retry_initial_delay: float = Field(default=1.0, gt=0)
 
 
 class VertexAIConfig(BaseModel):
@@ -53,8 +56,10 @@ class VertexAIConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    auth_method: Literal["gemini_api_key", "vertex_ai"] = "gemini_api_key"
     project: str | None = None
     region: str = Field(min_length=1)
+    google_api_key: SecretStr | None = None
 
 
 class LangfuseConfig(BaseModel):
@@ -133,6 +138,7 @@ def load_settings(
 ) -> Settings:
     """Load and validate application settings from YAML."""
 
+    load_dotenv()
     path = Path(config_path) if config_path is not None else _default_config_path()
     try:
         raw_config = _read_yaml(path)

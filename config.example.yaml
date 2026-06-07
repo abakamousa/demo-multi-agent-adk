@@ -17,11 +17,15 @@ environments:
     adk:
       app_name: "demo_multi_agent_adk"
       default_user_id: "anonymous"
-      model_name: "gemini-flash-latest"
+      model_name: "gemini-2.5-flash"
+      retry_attempts: 2
+      retry_initial_delay: 1.0
 
     vertex_ai:
+      auth_method: "gemini_api_key"
       project: null
       region: "us-central1"
+      google_api_key: null
 
     langfuse:
       public_key: null
@@ -39,7 +43,7 @@ environments:
       page_icon: ":robot_face:"
       layout: "centered"
       backend_url: "https://api.example.com"
-      prompt_label: "Ask AI AgentÒ assistant"
+      prompt_label: "Ask AI Agent assistant"
 
     backend:
       title: "Multi-Agent ADK Backend"
@@ -49,11 +53,15 @@ environments:
     adk:
       app_name: "demo_multi_agent_adk"
       default_user_id: "anonymous"
-      model_name: "gemini-flash-latest"
+      model_name: "gemini-2.5-flash"
+      retry_attempts: 2
+      retry_initial_delay: 1.0
 
     vertex_ai:
+      auth_method: "vertex_ai"
       project: "your-gcp-project-id"
       region: "us-central1"
+      google_api_key: null
 
     langfuse:
       public_key: null

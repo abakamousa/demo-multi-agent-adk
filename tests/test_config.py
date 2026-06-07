@@ -12,8 +12,10 @@ def test_load_settings_from_default_yaml() -> None:
 
     assert settings.adk.model_name
     assert settings.vertex_ai.region
+    assert settings.vertex_ai.auth_method in {"gemini_api_key", "vertex_ai"}
     assert settings.app.backend_url.scheme in {"http", "https"}
     assert str(settings.langfuse.base_url).startswith("https://")
+    assert hasattr(settings.vertex_ai, "google_api_key")
 
 
 def test_load_settings_rejects_unknown_keys(tmp_path) -> None:
@@ -41,8 +43,10 @@ environments:
       default_user_id: anonymous
       model_name: gemini-flash-latest
     vertex_ai:
+      auth_method: gemini_api_key
       project: null
       region: us-central1
+      google_api_key: null
     langfuse:
       public_key: null
       secret_key: null
@@ -93,8 +97,10 @@ environments:
       default_user_id: anonymous
       model_name: gemini-flash-latest
     vertex_ai:
+      auth_method: gemini_api_key
       project: null
       region: us-central1
+      google_api_key: null
     langfuse:
       public_key: null
       secret_key: null
@@ -119,8 +125,10 @@ environments:
       default_user_id: anonymous
       model_name: gemini-flash-latest
     vertex_ai:
+      auth_method: vertex_ai
       project: production-project
       region: us-central1
+      google_api_key: google-api-key
     langfuse:
       public_key: pk-lf-test
       secret_key: sk-lf-test
@@ -137,6 +145,7 @@ environments:
 
     assert settings.app.title == "Prod"
     assert settings.vertex_ai.project == "production-project"
+    assert settings.vertex_ai.google_api_key is not None
     assert settings.langfuse.public_key is not None
 
 

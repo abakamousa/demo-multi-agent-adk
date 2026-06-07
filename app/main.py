@@ -1,6 +1,7 @@
 """Streamlit frontend entrypoint."""
 
 import streamlit as st
+from typing import Any
 
 from app.service.vertex_llm import VertexLLMClient
 from app.utils.monitoring import LangfuseMonitor
@@ -23,21 +24,35 @@ st.set_page_config(
 )
 st.title(settings.app.title)
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+history: list[dict[str, Any]] = st.session_state.chat_history
+
+for message in history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if st.button("Clear history"):
+    st.session_state.chat_history = []
+    st.rerun()
+
 with st.form("user_query_form"):
     query = st.text_area(settings.app.prompt_label, height=150)
     submit = st.form_submit_button("Send")
 
 if submit and query:
     request = UserQuery(query=query)
+    history.append({"role": "user", "content": request.query})
     monitor.track_event("frontend.prompt", payload=request.model_dump())
-    st.info("Sending query to backend...")
+    st.info(f"Sending query to backend at {settings.app.backend_url}...")
 
     try:
-        response = llm_client.generate(prompt=request.query)
+        response = llm_client.generate(prompt=request.query, user_id=request.user_id)
         monitor.track_event("frontend.response", payload={"response": response})
-        st.success(response)
+        history.append({"role": "assistant", "content": response})
+        st.rerun()
     except Exception as exc:
         monitor.track_event("frontend.error", payload={"error": str(exc)})
-        st.error(
-            "Unable to generate a response. Check the backend or GCP Vertex configuration."
-        )
+        history.append({"role": "assistant", "content": f"Error: {exc}"})
+        st.error(f"Unable to generate a response: {exc}")

@@ -1,11 +1,14 @@
 """Backend FastAPI application entrypoint."""
 
+import logging
+
 from fastapi import FastAPI
 
 from backend.api.routes import router
 from utils.config import load_settings
 
 settings = load_settings()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.backend.title,
@@ -20,3 +23,19 @@ def health_check() -> dict[str, str]:
     """Return a lightweight readiness response for health checks."""
 
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def log_backend_configuration() -> None:
+    """Log the active auth mode so config issues are visible at startup."""
+
+    auth_mode = (
+        "gemini_api_key" if settings.vertex_ai.google_api_key else "vertex_or_missing"
+    )
+    logger.info(
+        "Backend startup config: project=%s region=%s auth_mode=%s has_google_api_key=%s",
+        settings.vertex_ai.project,
+        settings.vertex_ai.region,
+        auth_mode,
+        settings.vertex_ai.google_api_key is not None,
+    )

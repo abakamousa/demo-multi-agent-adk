@@ -85,6 +85,10 @@ environments:
   dev:
     app:
       backend_url: "http://localhost:8000"
+    vertex_ai:
+      project: null
+      region: "us-central1"
+      google_api_key: null
     langfuse:
       public_key: null
       secret_key: null
@@ -111,10 +115,15 @@ Update the ignored local `config.yaml` for environment-specific values such as:
 - `adk.model_name`
 - `vertex_ai.project`
 - `vertex_ai.region`
+- `vertex_ai.google_api_key`
 - Langfuse trace names and tags
 - `langfuse.public_key`
 - `langfuse.secret_key`
 - `langfuse.base_url`
+
+When `vertex_ai.google_api_key` is set, the backend exports it to `GOOGLE_API_KEY`
+before creating the ADK runner. You can still leave it `null` and provide
+`GOOGLE_API_KEY` from the shell instead.
 
 ## Langfuse Tracing
 
