@@ -84,7 +84,8 @@ gcloud run deploy demo-adk-backend \
   --image "$REGION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/backend:latest" \
   --region "$REGION" \
   --service-account "demo-adk-runtime@$PROJECT_ID.iam.gserviceaccount.com" \
-  --set-env-vars "APP_ENV=prod,VERTEX_AI_AUTH_METHOD=vertex_ai,VERTEX_AI_PROJECT=$PROJECT_ID,VERTEX_AI_REGION=$REGION" \
+  --set-env-vars "APP_ENV=prod,VERTEX_AI_AUTH_METHOD=vertex_ai,VERTEX_AI_PROJECT=$PROJECT_ID,VERTEX_AI_REGION=$REGION\
+  --update-env-vars "LANGFUSE_PUBLIC_KEY=pk-lf-a...,LANGFUSE_SECRET_KEY=sk-lf-...,LANGFUSE_BASE_URL=https://cloud.langfuse.com,LANGFUSE_BACKEND_TRACE_NAME=demo_multi_agent_adk.backend,LANGFUSE_TAGS=google-adk,prod,cloud-run" \
   --ingress all \
   --default-url \
   --allow-unauthenticated
@@ -179,22 +180,10 @@ It should end with `/frontend:latest`. If it ends with `/backend:latest`, redepl
 Prefer Secret Manager for production secrets. For a quick deployment, pass keys as Cloud Run env vars:
 
 ```bash
-cat > cloud-run-backend.env.yaml <<EOF
-LANGFUSE_PUBLIC_KEY: "pk-lf-..."
-LANGFUSE_SECRET_KEY: "sk-lf-..."
-LANGFUSE_BASE_URL: "https://cloud.langfuse.com"
-LANGFUSE_BACKEND_TRACE_NAME: "demo_multi_agent_adk.backend"
-LANGFUSE_TAGS: "google-adk,prod,cloud-run"
-LANGFUSE_DEBUG: "True"
-LANGFUSE_FLUSH_AT: "1"
-EOF
-
 gcloud run services update demo-adk-backend \
   --region "$REGION" \
-  --env-vars-file cloud-run-backend.env.yaml
+  --set-env-vars "LANGFUSE_PUBLIC_KEY=pk-lf-...,LANGFUSE_SECRET_KEY=sk-lf-...,LANGFUSE_BASE_URL=https://cloud.langfuse.com,LANGFUSE_TAGS=google-adk,prod,cloud-run"
 ```
-
-`cloud-run-*.env.yaml` is ignored by Git so deployment secrets are not committed.
 
 Apply the same values to `demo-adk-frontend` if frontend tracing is enabled.
 
