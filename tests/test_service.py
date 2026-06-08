@@ -6,7 +6,9 @@ import os
 from types import SimpleNamespace
 
 import pytest
+from fastapi.testclient import TestClient
 
+from backend.main import app
 from backend.service.vertex_llm import QuotaExceededError, VertexLLMService
 from utils.config import load_settings
 
@@ -57,6 +59,13 @@ class FakeVertexLLMService(VertexLLMService):
         return {"prompt": prompt}
 
 
+def test_backend_exposes_health_endpoints() -> None:
+    client = TestClient(app)
+
+    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/api/health").json() == {"status": "ok"}
+
+
 @pytest.mark.asyncio
 async def test_backend_vertex_llm_runs_adk_agent() -> None:
     service = FakeVertexLLMService()
@@ -92,7 +101,7 @@ def test_backend_vertex_llm_sets_google_api_key_env(monkeypatch) -> None:
     assert os.environ["GEMINI_API_KEY"] == "test-api-key"
 
 
-def test_backend_vertex_llm_does_not_read_google_api_key_from_env(monkeypatch) -> None:
+def test_backend_vertex_llm_reads_google_api_key_from_env(monkeypatch) -> None:
     monkeypatch.setenv("GOOGLE_API_KEY", "env-api-key")
     monkeypatch.setenv("GEMINI_API_KEY", "env-api-key")
     monkeypatch.setattr(
@@ -114,7 +123,7 @@ def test_backend_vertex_llm_does_not_read_google_api_key_from_env(monkeypatch) -
 
     service = VertexLLMService()
 
-    assert service.google_api_key is None
+    assert service.google_api_key == "env-api-key"
 
 
 def test_backend_vertex_llm_sets_vertex_ai_env(monkeypatch) -> None:

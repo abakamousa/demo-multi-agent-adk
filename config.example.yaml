@@ -13,6 +13,7 @@ environments:
       title: "Multi-Agent ADK Backend"
       description: "FastAPI backend for the multi-agent system, exposing GCP Vertex AI integration."
       version: "0.1.0"
+      cors_allowed_origins: []
 
     adk:
       app_name: "demo_multi_agent_adk"
@@ -49,6 +50,7 @@ environments:
       title: "Multi-Agent ADK Backend"
       description: "FastAPI backend for the multi-agent system, exposing GCP Vertex AI integration."
       version: "0.1.0"
+      cors_allowed_origins: []
 
     adk:
       app_name: "demo_multi_agent_adk"

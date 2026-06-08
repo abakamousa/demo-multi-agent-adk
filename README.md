@@ -177,7 +177,7 @@ uv run uvicorn backend.main:app --reload --port 8000
 Health check:
 
 ```bash
-curl http://localhost:8000/healthz
+curl http://localhost:8000/api/health
 ```
 
 Chat endpoint:
@@ -233,5 +233,6 @@ uv run --extra dev ruff check .
 - `config.example.yaml` is the committed template.
 - `config.yaml` is ignored and may contain local credentials.
 - Prefer environment variables or deployment secret management for production secrets.
+- For GCP Cloud Run deployment steps, see [docs/gcp-cloud-run-deployment.md](docs/gcp-cloud-run-deployment.md).
 - The frontend service is still a lightweight local client layer. The backend is the ADK execution path.
 - See [images/architecture.png](images/architecture.png) for the architecture diagram.

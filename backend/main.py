@@ -3,6 +3,7 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router
 from utils.config import load_settings
@@ -15,10 +16,21 @@ app = FastAPI(
     description=settings.backend.description,
     version=settings.backend.version,
 )
+
+if settings.backend.cors_allowed_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.backend.cors_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
 app.include_router(router, prefix="/api")
 
 
 @app.get("/healthz")
+@app.get("/api/health")
 def health_check() -> dict[str, str]:
     """Return a lightweight readiness response for health checks."""
 

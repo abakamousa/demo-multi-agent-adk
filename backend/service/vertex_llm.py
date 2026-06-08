@@ -232,7 +232,7 @@ class VertexLLMService:
         if settings.vertex_ai.google_api_key is not None:
             return settings.vertex_ai.google_api_key.get_secret_value()
 
-        return None
+        return os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
     def _is_quota_error(self, exc: Exception) -> bool:
         """Identify Gemini quota exhaustion errors from ADK/GenAI exceptions."""

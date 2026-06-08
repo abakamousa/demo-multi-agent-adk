@@ -62,7 +62,7 @@ class VertexLLMClient:
         """Check that the backend health endpoint responds before sending chat."""
 
         health_request = request.Request(
-            url=f"{self.backend_url}/healthz",
+            url=f"{self.backend_url}/api/health",
             method="GET",
         )
 
@@ -71,12 +71,12 @@ class VertexLLMClient:
                 status_code = getattr(response, "status", None)
         except error.URLError as exc:
             raise RuntimeError(
-                f"Backend health check failed for {self.backend_url}/healthz. "
+                f"Backend health check failed for {self.backend_url}/api/health. "
                 "Make sure the FastAPI server is running and the URL is correct."
             ) from exc
 
         if status_code != 200:
             raise RuntimeError(
                 f"Backend health check returned status {status_code} "
-                f"for {self.backend_url}/healthz."
+                f"for {self.backend_url}/api/health."
             )

@@ -149,6 +149,41 @@ environments:
     assert settings.langfuse.public_key is not None
 
 
+def test_load_settings_applies_deployment_env_overrides(monkeypatch) -> None:
+    """Allow Cloud Run environment variables to override YAML defaults."""
+
+    load_settings.cache_clear()
+    monkeypatch.setenv("APP_BACKEND_URL", "https://backend.example.com")
+    monkeypatch.setenv("ADK_MODEL_NAME", "gemini-2.5-pro")
+    monkeypatch.setenv("VERTEX_AI_AUTH_METHOD", "vertex_ai")
+    monkeypatch.setenv("VERTEX_AI_PROJECT", "env-project")
+    monkeypatch.setenv("VERTEX_AI_REGION", "europe-west1")
+    monkeypatch.setenv("LANGFUSE_PUBLIC_KEY", "pk-lf-env")
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "sk-lf-env")
+    monkeypatch.setenv("LANGFUSE_TAGS", "google-adk,prod,cloud-run")
+    monkeypatch.setenv(
+        "BACKEND_CORS_ALLOWED_ORIGINS",
+        "https://frontend.example.com, https://admin.example.com",
+    )
+
+    settings = load_settings()
+
+    assert str(settings.app.backend_url) == "https://backend.example.com/"
+    assert settings.adk.model_name == "gemini-2.5-pro"
+    assert settings.vertex_ai.auth_method == "vertex_ai"
+    assert settings.vertex_ai.project == "env-project"
+    assert settings.vertex_ai.region == "europe-west1"
+    assert settings.langfuse.public_key is not None
+    assert settings.langfuse.secret_key is not None
+    assert settings.langfuse.tags == ["google-adk", "prod", "cloud-run"]
+    assert settings.backend.cors_allowed_origins == [
+        "https://frontend.example.com",
+        "https://admin.example.com",
+    ]
+
+    load_settings.cache_clear()
+
+
 def test_environment_config_rejects_unknown_environment() -> None:
     """Raise a helpful error when the requested environment is missing."""
 

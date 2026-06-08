@@ -37,6 +37,7 @@ class BackendConfig(BaseModel):
     title: str = Field(min_length=1)
     description: str = Field(min_length=1)
     version: str = Field(min_length=1)
+    cors_allowed_origins: list[str] = Field(default_factory=list)
 
 
 class ADKConfig(BaseModel):
@@ -123,6 +124,63 @@ def _read_yaml(path: Path) -> dict[str, Any]:
     return raw_config
 
 
+def _env_value(name: str) -> str | None:
+    """Return a non-empty environment variable value."""
+
+    value = getenv(name)
+    if value is None or value == "":
+        return None
+    return value
+
+
+def _env_list(name: str) -> list[str] | None:
+    """Return a comma-separated environment variable as a list."""
+
+    value = _env_value(name)
+    if value is None:
+        return None
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _apply_env_overrides(settings: Settings) -> Settings:
+    """Apply deployment-friendly environment variable overrides."""
+
+    raw_settings = settings.model_dump(mode="python")
+
+    scalar_overrides = {
+        ("app", "backend_url"): _env_value("APP_BACKEND_URL"),
+        ("app", "title"): _env_value("APP_TITLE"),
+        ("app", "prompt_label"): _env_value("APP_PROMPT_LABEL"),
+        ("adk", "model_name"): _env_value("ADK_MODEL_NAME"),
+        ("vertex_ai", "auth_method"): _env_value("VERTEX_AI_AUTH_METHOD"),
+        ("vertex_ai", "project"): _env_value("VERTEX_AI_PROJECT"),
+        ("vertex_ai", "region"): _env_value("VERTEX_AI_REGION"),
+        ("vertex_ai", "google_api_key"): _env_value("GOOGLE_API_KEY")
+        or _env_value("GEMINI_API_KEY"),
+        ("langfuse", "public_key"): _env_value("LANGFUSE_PUBLIC_KEY"),
+        ("langfuse", "secret_key"): _env_value("LANGFUSE_SECRET_KEY"),
+        ("langfuse", "base_url"): _env_value("LANGFUSE_BASE_URL"),
+        ("langfuse", "backend_trace_name"): _env_value("LANGFUSE_BACKEND_TRACE_NAME"),
+        ("langfuse", "frontend_trace_name"): _env_value("LANGFUSE_FRONTEND_TRACE_NAME"),
+    }
+
+    for path, value in scalar_overrides.items():
+        if value is None:
+            continue
+        section, key = path
+        raw_settings[section][key] = value
+
+    cors_allowed_origins = _env_list("BACKEND_CORS_ALLOWED_ORIGINS")
+    if cors_allowed_origins is not None:
+        raw_settings["backend"]["cors_allowed_origins"] = cors_allowed_origins
+
+    langfuse_tags = _env_list("LANGFUSE_TAGS")
+    if langfuse_tags is not None:
+        raw_settings["langfuse"]["tags"] = langfuse_tags
+
+    return Settings.model_validate(raw_settings)
+
+
 def _default_config_path() -> Path:
     """Use local config when present, otherwise use the committed example."""
 
@@ -143,9 +201,11 @@ def load_settings(
     try:
         raw_config = _read_yaml(path)
         if "environments" in raw_config:
-            return EnvironmentSettingsFile.model_validate(raw_config).select(
+            settings = EnvironmentSettingsFile.model_validate(raw_config).select(
                 environment=environment
             )
-        return Settings.model_validate(raw_config)
+        else:
+            settings = Settings.model_validate(raw_config)
+        return _apply_env_overrides(settings)
     except ValidationError as exc:
         raise ValueError(f"Invalid configuration in {path}: {exc}") from exc

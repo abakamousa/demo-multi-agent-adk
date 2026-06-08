@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV APP_ENV=prod
+ENV PORT=8080
+ENV PYTHONPATH=/app
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock README.md ./
+RUN pip install --no-cache-dir uv \
+    && uv sync --frozen --no-dev --no-install-project
+
+COPY backend backend
+COPY utils utils
+COPY config.example.yaml config.example.yaml
+
+CMD ["uv", "run", "--no-sync", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8080"]
