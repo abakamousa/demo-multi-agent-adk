@@ -96,12 +96,12 @@ def test_backend_vertex_llm_sets_google_api_key_env(monkeypatch) -> None:
     monkeypatch.setenv("GEMINI_API_KEY", "")
 
     service = VertexLLMService()
-    service.google_api_key = "test-api-key"
+    service.google_api_key = "test-api-key"  # pragma: allowlist secret
 
     service._configure_google_auth()
 
-    assert os.environ["GOOGLE_API_KEY"] == "test-api-key"
-    assert os.environ["GEMINI_API_KEY"] == "test-api-key"
+    assert os.environ["GOOGLE_API_KEY"] == "test-api-key"  # pragma: allowlist secret
+    assert os.environ["GEMINI_API_KEY"] == "test-api-key"  # pragma: allowlist secret
 
 
 def test_backend_vertex_llm_reads_google_api_key_from_env(monkeypatch) -> None:
@@ -126,7 +126,7 @@ def test_backend_vertex_llm_reads_google_api_key_from_env(monkeypatch) -> None:
 
     service = VertexLLMService()
 
-    assert service.google_api_key == "env-api-key"
+    assert service.google_api_key == "env-api-key"  # pragma: allowlist secret
 
 
 def test_backend_vertex_llm_sets_vertex_ai_env(monkeypatch) -> None:
@@ -138,7 +138,7 @@ def test_backend_vertex_llm_sets_vertex_ai_env(monkeypatch) -> None:
 
     service = VertexLLMService(project="demo-project", region="us-central1")
     service.auth_method = "vertex_ai"
-    service.google_api_key = "fallback-api-key"
+    service.google_api_key = "fallback-api-key"  # pragma: allowlist secret
 
     service._configure_google_auth()
 
@@ -156,12 +156,12 @@ def test_backend_vertex_llm_uses_gemini_api_key_mode_by_default(monkeypatch) -> 
 
     service = VertexLLMService()
     service.auth_method = "gemini_api_key"
-    service.google_api_key = "test-api-key"
+    service.google_api_key = "test-api-key"  # pragma: allowlist secret
 
     service._configure_google_auth()
 
-    assert os.environ["GOOGLE_API_KEY"] == "test-api-key"
-    assert os.environ["GEMINI_API_KEY"] == "test-api-key"
+    assert os.environ["GOOGLE_API_KEY"] == "test-api-key"  # pragma: allowlist secret
+    assert os.environ["GEMINI_API_KEY"] == "test-api-key"  # pragma: allowlist secret
     assert "GOOGLE_GENAI_USE_VERTEXAI" not in os.environ
 
 

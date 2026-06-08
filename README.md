@@ -133,7 +133,7 @@ Configure Langfuse with environment variables or the ignored local `config.yaml`
 
 ```bash
 export LANGFUSE_PUBLIC_KEY="pk-lf-..."
-export LANGFUSE_SECRET_KEY="sk-lf-..."
+export LANGFUSE_SECRET_KEY="sk-lf-..." # pragma: allowlist secret
 export LANGFUSE_BASE_URL="https://cloud.langfuse.com"
 ```
 
