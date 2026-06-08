@@ -12,6 +12,7 @@ env/
 .env
 .env.*
 config.yaml
+cloud-run-*.env.yaml
 
 # Packaging
 build/

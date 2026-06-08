@@ -45,6 +45,9 @@ class FakeMonitor:
     def trace_agent_run(self, **kwargs: object) -> object:
         yield SimpleNamespace(update=lambda **update_kwargs: None)
 
+    def flush(self) -> None:
+        return None
+
 
 class FakeVertexLLMService(VertexLLMService):
     def __init__(self) -> None:
