@@ -8,6 +8,11 @@ from types import SimpleNamespace
 import pytest
 from fastapi.testclient import TestClient
 
+from backend.agents.financial_advisor import (
+    calculate_compound_growth,
+    calculate_loan_payment,
+    create_financial_advisor_agent,
+)
 from backend.main import app
 from backend.service.vertex_llm import QuotaExceededError, VertexLLMService
 from utils.config import load_settings
@@ -67,6 +72,46 @@ def test_backend_exposes_health_endpoints() -> None:
 
     assert client.get("/healthz").json() == {"status": "ok"}
     assert client.get("/api/health").json() == {"status": "ok"}
+
+
+def test_financial_advisor_exposes_calculator_tools() -> None:
+    agent = create_financial_advisor_agent()
+    tool_names = {
+        getattr(tool, "__name__", getattr(tool, "name", ""))
+        for tool in agent.tools
+    }
+
+    assert "calculate_compound_growth" in tool_names
+    assert "calculate_loan_payment" in tool_names
+
+
+def test_calculate_compound_growth() -> None:
+    result = calculate_compound_growth(
+        principal=1000,
+        annual_rate_percent=12,
+        years=1,
+        monthly_contribution=100,
+    )
+
+    assert result == {
+        "future_value": 2395.08,
+        "total_contributions": 2200,
+        "growth": 195.08,
+    }
+
+
+def test_calculate_loan_payment() -> None:
+    result = calculate_loan_payment(
+        principal=300000,
+        annual_rate_percent=6,
+        years=30,
+    )
+
+    assert result == {
+        "monthly_payment": 1798.65,
+        "total_payment": 647514.57,
+        "total_interest": 347514.57,
+    }
 
 
 @pytest.mark.asyncio
